@@ -56,17 +56,21 @@ def steal_gun():
     prison()
 
 def navigate_loc():
-    global option_navigate
+    global option_navigate, file_path_sl
 
     os.system('cls' if os.name == 'nt' else 'clear')
     print("You see quite a few places in the police station... wanna explore them or cause trouble?")
     time.sleep(2)
     print("\nType a number to navigate:")
-    print("\n1. Try to steal a gun")
+    print("\n1. Exit the police station")
+    print("2. Try to steal a gun")
 
     option_navigate = input("\n>>> ")
 
     if option_navigate == "1":
+        subprocess.run([sys.executable, file_path_sl])
+        sys.exit()
+    elif option_navigate == "2":
         steal_gun()
     else:
         print("Please type in a number to continue.")
