@@ -38,7 +38,7 @@ You own a bakery somewhere in the city, which is also your home because you are 
 | time                 | pip install time               |
 | subprocess           | pip install subprocess         |
 | os                   | pip install os                 |
-| sys                  |                                |
+| sys                  | pip install sys                |
 | json                 | pip install json               |
 
 ---
