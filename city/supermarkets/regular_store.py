@@ -7,7 +7,7 @@ import sys
 # --- Global Variables ---
 
 file_path_pantry = os.path.join("pantry.json")
-file_path_wallet = os.path.join("personal", "wallet.json")
+file_path_config = os.path.join("config.json")
 file_path_bank = os.path.join("city", "bank.py")
 file_path_select_location = os.path.join("city", "select_location.py")
 loop_aisle_way = 5
@@ -15,6 +15,12 @@ loop_checkout_way = 5
 items_price = 56
 
 # --- Functions ---
+
+def load_config():
+    global file_path_config
+
+    with open(file_path_config, "r", encoding="utf-8") as file:
+        return json.load(file)
 
 def add_ingredients_pantry():
     global file_path_pantry
@@ -43,15 +49,14 @@ def add_ingredients_pantry():
     print("The ingredients have been added to your pantry.")
 
 def buy_ingredients():
-    global file_path_wallet, file_path_bank, items_price
+    global file_path_bank, items_price
 
-    with open(file_path_wallet, "r", encoding="utf-8") as file:
-        wallet = json.load(file)
+    config = load_config()
 
-    account_balance = wallet["account_balance"]
-    currency = wallet["currency"]
+    account_balance = config["bank_account"]["balance"]
+    currency = config["bank_account"]["currency"]
 
-    if account_balance - items_price >= 0:
+    if account_balance - items_price >= 56:
         print(f"You bought 15 items for {items_price} {currency}!")
         add_ingredients_pantry()
     else:
@@ -99,10 +104,9 @@ def aisle_way():
     print("\nCashier: Good. Looks like you can handle manners.")
     time.sleep(2)
 
-    with open(file_path_wallet, "r", encoding="utf-8") as file:
-        wallet = json.load(file)
+    config = load_config()
 
-    currency = wallet["currency"]
+    currency = config["bank_account"]["currency"]
 
     print(f"\nCashier: That would be {items_price} {currency}.")
     time.sleep(2)
@@ -111,12 +115,11 @@ def aisle_way():
     buy_ingredients()
 
 def greeting():
-    global file_path_wallet, file_path_select_location
+    global file_path_select_location
 
-    with open(file_path_wallet, "r", encoding="utf-8") as file:
-        wallet = json.load(file)
+    config = load_config()
 
-    account_balance = wallet["account_balance"]
+    account_balance = config["bank_account"]["balance"]
 
     if account_balance <= 50:
         print("Suddenly, an employee approaches you...")
@@ -141,3 +144,5 @@ def greeting():
         time.sleep(3)
 
         aisle_way()
+
+greeting()
