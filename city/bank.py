@@ -8,13 +8,13 @@ import sys
 
 # --- Bank Account Variables ---
 
-first_name = None
-last_name = None
+username = None
 currency = None
-account_balance = 0
+balance = 0
 
 # --- Other Variables ---
 
+file_path_config = os.path.join("config.json")
 file_path_wallet = os.path.join("personal", "wallet.json")
 vote_create_new_bank_account = None
 file_path_select_location = os.path.join("city", "select_location.py")
@@ -27,18 +27,28 @@ vote_ask_work = None
 # --- Functions ---
 
 def update_account():
-    global file_path_wallet, first_name, last_name, currency, account_balance
-    update_account_data = {
-        "first_name": first_name,
-        "last_name": last_name,
-        "currency": currency,
-        "account_balance": account_balance
-    }
+    global file_path_config, username, currency, balance
+    
+    if os.path.exists(file_path_config):
+        with open(file_path_config, "r", encoding="utf-8") as file:
+            config = json.load(file)
+    else:
+        config = {}
 
-    os.makedirs(os.path.dirname(file_path_wallet), exist_ok=True)
+    if "bank_account" not in config:
+        config["bank_account"] = {}
+    if "user" not in config:
+        config["user"] = {}
 
-    with open(file_path_wallet, "w", encoding="utf-8") as file:
-        json.dump(update_account_data, file, ensure_ascii=False, indent=4)
+    config["user"]["username"] = username
+    config["bank_account"]["currency"] = currency
+    config["bank_account"]["balance"] = balance
+
+    if os.path.dirname(file_path_config):
+        os.makedirs(os.path.dirname(file_path_config), exist_ok=True)
+
+    with open(file_path_config, "w", encoding="utf-8") as file:
+        json.dump(config, file, ensure_ascii=False, indent=4)
 
 def cleaner_job():
     global is_greeted_job
@@ -61,13 +71,13 @@ def cleaner_job():
             sys.exit()    
 
     def check_account_balance():
-        global account_balance
-        print(f"Your account balance is: {account_balance}")
+        global balance
+        print(f"Your account balance is: {balance}")
         time.sleep(2)
         ask_continue()
 
     def clean_dishes():
-        global loop_clean_dishes, account_balance
+        global loop_clean_dishes, balance
         while loop_clean_dishes < 5:
             os.system('cls' if os.name == 'nt' else 'clear')
             print("Cleaning one plate.")
@@ -77,9 +87,10 @@ def cleaner_job():
             time.sleep(0.5)
             os.system('cls' if os.name == 'nt' else 'clear')
             print("Cleaning one plate...")
+            time.sleep(0.5)
             os.system('cls' if os.name == 'nt' else 'clear')
             loop_clean_dishes += 1
-        account_balance += 10
+        balance += 10
         loop_clean_dishes = 0
         update_account()
         print(f"You earned 10 {currency}! Saved to wallet.")
@@ -87,8 +98,8 @@ def cleaner_job():
         ask_continue()
 
     def greeting():
-        global first_name, currency, is_greeted_job
-        print(f"\nWelcome, {first_name}!")
+        global username, currency, is_greeted_job
+        print(f"\nWelcome, {username}!")
         time.sleep(1)
         print("You were upgraded from homeless to dish cleaner!")
         time.sleep(1)
@@ -102,29 +113,20 @@ def cleaner_job():
         ask_continue()
 
 def create_account():
-    global first_name, last_name, currency, account_balance, file_path_wallet
-    
-    empty_bank_account_create = {
-        "first_name": first_name,
-        "last_name": last_name,
-        "currency": currency,
-        "account_balance": account_balance
-    }
+    global username, currency, balance, file_path_config
 
-    os.makedirs(os.path.dirname(file_path_wallet), exist_ok=True)
-    with open(file_path_wallet, "w", encoding="utf-8") as file:
-        json.dump(empty_bank_account_create, file, ensure_ascii=False, indent=4)
+    balance = 0
+    update_account()
 
     print("Created a new bank account!")
     print(f"""
-    First Name: {first_name},
-    Last Name: {last_name},
-    Currency: {currency},
-    Account Balance: {account_balance}
+        Username: {username},
+        Currency: {currency},
+        Account Balance: {balance}
     """)
 
-    if account_balance < 1000:
-        print(f"\nBy the way, you only have {account_balance} {currency} on your account.")
+    if balance < 1000:
+        print(f"\nBy the way, you only have {balance} {currency} on your account.")
         time.sleep(2)
         vote_work = input("Do you want to work to get some money? Yes or No.\n>>> ")
 
@@ -140,28 +142,41 @@ def create_account():
 # --- Story --- 
 
 def story():
-    global vote_ask_work, first_name, last_name, currency, account_balance
-
-    if not os.path.exists(file_path_wallet):
-        os.makedirs(os.path.dirname(file_path_wallet), exist_ok=True)
-        empty_bank_account_create = {
-            "first_name": None,
-            "last_name": None,
+    global vote_ask_work, username, currency, balance, file_path_config
+    
+    if os.path.dirname(file_path_config):
+        os.makedirs(os.path.dirname(file_path_config), exist_ok=True)
+    default_config = {
+        "locations": {
+            "police_station": {
+                "is_greeted": False
+            }
+        },
+        "bank_account": {
             "currency": None,
-            "account_balance": 0
+            "balance": 0
+        },
+        "user": {
+            "username": None,
+            "age": 0,
+            "gender": None
         }
-        with open(file_path_wallet, "w", encoding="utf-8") as file:
-            json.dump(empty_bank_account_create, file, ensure_ascii=False, indent=4)
+    }
 
-    with open(file_path_wallet, "r", encoding="utf-8") as file:
-        bank_account = json.load(file)
+    with open(file_path_config, "w", encoding="utf-8") as file:
+        json.dump(default_config, file, ensure_ascii=False, indent=4)
 
-    first_name = bank_account["first_name"]
-    last_name = bank_account["last_name"]
-    currency = bank_account["currency"]
-    account_balance = bank_account["account_balance"]
+    with open(file_path_config, "r", encoding="utf-8") as file:
+        config = json.load(file)
 
-    if bank_account["first_name"] is not None and bank_account["account_balance"] < 1000:
+    bank_account = config.get("bank_account", {})
+    user_section = config.get("user", {})
+    
+    username = user_section.get("username")
+    currency = bank_account.get("currency")
+    balance = bank_account.get("balance", 0)
+
+    if username is not None and balance < 1000:
         print("It seems like you already have a bank account.")
         time.sleep(1)
         vote_ask_work = input("Wanna work instead? Yes or No.\n>>> ")
@@ -173,7 +188,7 @@ def story():
             subprocess.run([sys.executable, file_path_select_location])
             sys.exit()
 
-    if bank_account["first_name"] is not None:
+    if username is not None:
         cleaner_job()
         return
 
@@ -181,8 +196,14 @@ def story():
 
     if vote_create_new_bank_account == "Yes" or vote_create_new_bank_account == "yes":
         print("Alright, let's create the bank account, we need some details.")
-        first_name = input("What's your first name?\n>>> ")
-        last_name = input("What's your last name?\n>>> ")
+
+
+        
+        if username == None:
+            username = input("What's your username?\n>>> ")
+        else:
+            return
+        
         currency = input("What currency do you want to use? EUR or USD?\n>>> ")
 
         if currency not in ["EUR", "USD"]:

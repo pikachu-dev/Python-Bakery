@@ -6,7 +6,11 @@
     },
     "bank_account": {
         "currency": null,
-        "username": null,
         "balance": 0
+    },
+    "user": {
+        "username": null,
+        "age": 0,
+        "gender": null
     }
 }
