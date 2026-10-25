@@ -2,16 +2,24 @@ import os
 import time
 import sys
 import subprocess
+import json
 
 vote_welcome_help = None
 no_counter_vhc = 0
+file_path_config = os.path.join("config.json")
 
 def story_start():
-    print("...")
+    ... # Story unfinished
 
 def welcome():
-    
-    print("Hello, User!")
+    global file_path_config
+
+    with open(file_path_config, "r", encoding="utf-8") as f:
+        config = json.load(f)
+
+    username = config["user"]["username"]
+
+    print(f"Hello, {username}!")
     time.sleep(1)
     print("I'm Pikachu-Dev, and I built this game.")
     time.sleep(3)
@@ -71,4 +79,26 @@ def welcome():
 
     vote_help_cake()
 
-welcome()
+def username_question():
+    global file_path_config
+    print("Hello, before you can play the game...")
+    time.sleep(1)
+
+    with open(file_path_config, "r", encoding="utf-8") as f:
+        config = json.load(f)
+
+    config["user"]["username"] = str(input("Choose a username:\n>>> "))
+
+    config["user"]["age"] = int(input("Choose your age:\n>>> "))
+
+    with open(file_path_config, "w", encoding="utf-8") as f:
+        json.dump(config, f, indent=4, ensure_ascii=False)
+
+    print("Thank you! <3")
+    time.sleep(2)
+    
+    os.system('cls' if os.name == 'nt' else 'clear')
+
+    welcome()
+
+username_question()
