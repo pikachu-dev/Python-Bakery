@@ -4,6 +4,7 @@ import time
 import os
 import subprocess
 import sys
+import json
 
 # --- Global Variables ---
 
@@ -11,6 +12,7 @@ loop_search = 5
 option_navigate = None
 loop_prison = 5
 file_path_sl = os.path.join("city", "select_location.py")
+file_path_config = os.path.join("config.json")
 
 # --- Functions ---
 
@@ -121,4 +123,25 @@ def enter_loc():
     time.sleep(4)
     navigate_loc()
 
-enter_loc()
+
+# Check if is_greeted in config.json is true
+with open(file_path_config, "r", encoding="utf-8") as file:
+        config = json.load(file)
+
+if config["locations"]["police_station"]["is_greeted"] == True:
+    os.system('cls' if os.name == 'nt' else 'clear')
+    print("A guard approaches you.")
+    time.sleep(2)
+    print("\nGuard: Oh, you're back so soon, huh?")
+    time.sleep(2)
+    print("Come on, just go in.")
+    time.sleep(2)
+    os.system('cls' if os.name == 'nt' else 'clear')
+    navigate_loc()
+else:
+    config["locations"]["police_station"]["is_greeted"] = True
+
+    with open(file_path_config, "w", encoding="utf-8") as file:
+        json.dump(config, file, indent=4, ensure_ascii=False)
+
+    enter_loc()

@@ -1,0 +1,12 @@
+{
+    "locations": {
+        "police_station": {
+            "is_greeted": false
+        }
+    },
+    "bank_account": {
+        "currency": null,
+        "username": null,
+        "balance": 0
+    }
+}
