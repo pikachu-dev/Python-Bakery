@@ -45,21 +45,20 @@ You own a bakery somewhere in the city, which is also your home because you are 
 
 ## ASCII File & Folder Structure
 ```
-└── Python Bakery/                           # Root Folder
-    ├── city/                                # City-Folder; Contains Locations
-    │   ├── supermarkets/
-    │   │   ├── healthcare_store.py
-    │   │   └── regular_store.py
+└── Python-Bakery/
+    ├── city/
     │   ├── bank.py
     │   ├── police_station.py
-    │   └── select_location.py               # Contains Location Selection Menu 
-    ├── personal/
-    │   └── wallet.json                      # Contains Wallet Data
-    ├── LICENSE.md
-    ├── README.md
+    │   ├── select_location.py
+    │   └── supermarkets/
+    │       ├── healthcare_store.py
+    │       └── regular_store.py
     ├── bake.py
+    ├── config.json
+    ├── LICENSE
     ├── oven.py
     ├── pantry.json
+    ├── README.md
     ├── recipe.json
-    └── start.py                             # Main Start-File
+    └── start.py
 ```
