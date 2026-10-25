@@ -143,40 +143,25 @@ def create_account():
 
 def story():
     global vote_ask_work, username, currency, balance, file_path_config
-    
-    if os.path.dirname(file_path_config):
-        os.makedirs(os.path.dirname(file_path_config), exist_ok=True)
-    default_config = {
-        "locations": {
-            "police_station": {
-                "is_greeted": False
-            }
-        },
-        "bank_account": {
-            "currency": None,
-            "balance": 0
-        },
-        "user": {
-            "username": None,
-            "age": 0,
-            "gender": None
-        }
-    }
 
-    with open(file_path_config, "w", encoding="utf-8") as file:
-        json.dump(default_config, file, ensure_ascii=False, indent=4)
-
-    with open(file_path_config, "r", encoding="utf-8") as file:
-        config = json.load(file)
+    # Load config (empty if the file doesn't exist yet)
+    if os.path.exists(file_path_config):
+        with open(file_path_config, "r", encoding="utf-8") as file:
+            config = json.load(file)
+    else:
+        config = {}
 
     bank_account = config.get("bank_account", {})
     user_section = config.get("user", {})
-    
+
     username = user_section.get("username")
     currency = bank_account.get("currency")
     balance = bank_account.get("balance", 0)
 
-    if username is not None and balance < 1000:
+    # A bank account only exists if a currency has been chosen
+    has_account = currency is not None
+
+    if has_account and balance < 1000:
         print("It seems like you already have a bank account.")
         time.sleep(1)
         vote_ask_work = input("Wanna work instead? Yes or No.\n>>> ")
@@ -188,7 +173,7 @@ def story():
             subprocess.run([sys.executable, file_path_select_location])
             sys.exit()
 
-    if username is not None:
+    if has_account:
         cleaner_job()
         return
 
@@ -197,18 +182,16 @@ def story():
     if vote_create_new_bank_account == "Yes" or vote_create_new_bank_account == "yes":
         print("Alright, let's create the bank account, we need some details.")
 
-
-        
-        if username == None:
+        # Only ask for the username if there is none yet
+        if username is None:
             username = input("What's your username?\n>>> ")
-        else:
-            return
-        
-        currency = input("What currency do you want to use? EUR or USD?\n>>> ")
 
-        if currency not in ["EUR", "USD"]:
-            print("Invalid currency. Please choose either EUR or USD.")
-            return story()
+        # Always ask for the currency until it is valid
+        currency = None
+        while currency not in ["EUR", "USD"]:
+            currency = input("What currency do you want to use? EUR or USD?\n>>> ")
+            if currency not in ["EUR", "USD"]:
+                print("Invalid currency. Please choose either EUR or USD.")
 
         create_account()
     elif vote_create_new_bank_account == "No" or vote_create_new_bank_account == "no":
