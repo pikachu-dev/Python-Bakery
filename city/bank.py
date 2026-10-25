@@ -183,7 +183,12 @@ def story():
         print("Alright, let's create the bank account, we need some details.")
         first_name = input("What's your first name?\n>>> ")
         last_name = input("What's your last name?\n>>> ")
-        currency = input("What currency do you want to use?\n>>> ")
+        currency = input("What currency do you want to use? EUR or USD?\n>>> ")
+
+        if currency not in ["EUR", "USD"]:
+            print("Invalid currency. Please choose either EUR or USD.")
+            return story()
+
         create_account()
     elif vote_create_new_bank_account == "No" or vote_create_new_bank_account == "no":
         print("You need a bank account in this game to play it, duh.")
