@@ -1,205 +1,254 @@
 # --- Import Modules ---
 
-import time
 import json
 import os
+import time
 import subprocess
 import sys
 
-# --- Bank Account Variables ---
+# --- Command Functions ---
 
-username = None
-currency = None
-balance = 0
+def clear_console():
+    os.system('cls' if os.name == 'nt' else 'clear') # Command to Clear the Command Line Interface
 
-# --- Other Variables ---
+# --- Global Variables ---
 
-file_path_config = os.path.join("config.json")
-file_path_wallet = os.path.join("personal", "wallet.json")
-vote_create_new_bank_account = None
-file_path_select_location = os.path.join("city", "select_location.py")
-loop_clean_dishes = 0
-job_payout = 0
-is_greeted_job = False
-vote_ask_continue = None
-vote_ask_work = None
+file_path_config = os.path.join('config.json') # File Path of Root Config JSON-File
+file_path_select_location = os.path.join('city', 'select_location.py') # File Path of Location Selection
 
-# --- Functions ---
+# --- Classes ---
 
-def update_account():
-    global file_path_config, username, currency, balance
-    
-    if os.path.exists(file_path_config):
-        with open(file_path_config, "r", encoding="utf-8") as file:
-            config = json.load(file)
-    else:
-        config = {}
+class Color:
+    # Styles
+    BOLD = "\033[1m"
+    DIM = "\033[2m"
+    ITALIC = "\033[3m"
+    UNDERLINE = "\033[4m"
+    RESET = "\033[0m"
 
-    if "bank_account" not in config:
-        config["bank_account"] = {}
-    if "user" not in config:
-        config["user"] = {}
+    # Colors
+    RED = "\033[31m"
+    GREEN = "\033[32m"
+    YELLOW = "\033[33m"
+    BLUE = "\033[34m"
 
-    config["user"]["username"] = username
-    config["bank_account"]["currency"] = currency
-    config["bank_account"]["balance"] = balance
+class Main:
+    # --- Initialization of Main-Class ---
+    def __init__(self, username, currency, balance):
+        self.username = username
+        self.currency = currency
+        self.balance = balance
+        self.is_greeted_job = False
 
-    if os.path.dirname(file_path_config):
-        os.makedirs(os.path.dirname(file_path_config), exist_ok=True)
+    def update_bank_account(self): # Update the Bank Account in config.json with new data
+        if os.path.exists(file_path_config):
+            with open(file_path_config, 'r', encoding='utf-8') as file:
+                config = json.load(file)
+        else:
+            config = {}
 
-    with open(file_path_config, "w", encoding="utf-8") as file:
-        json.dump(config, file, ensure_ascii=False, indent=4)
+        if 'bank_account' not in config:
+            config['bank_account'] = {}
+        if 'user' not in config:
+            config['user'] = {}
 
-def cleaner_job():
-    global is_greeted_job
+        config['user']['username'] = self.username
+        config['bank_account']['currency'] = self.currency
+        config['bank_account']['balance'] = self.balance
 
-    def ask_continue():
-        global currency, vote_ask_continue
-        print("\nType a number to do the action:")
-        print(f"1. Clean a dish for 10 {currency}")
-        print("2. Check current account balance")
-        print("3. Exit the bank")
+        with open(file_path_config, 'w', encoding='utf-8') as file:
+            json.dump(config, file, ensure_ascii=False, indent=4)
 
-        vote_ask_continue = input("\n>>> ")
+    # --- Bank Account ---
 
-        if vote_ask_continue == "1":
-            clean_dishes()
-        elif vote_ask_continue == "2":
-            check_account_balance()
-        elif vote_ask_continue == "3":
-            subprocess.run([sys.executable, file_path_select_location])
-            sys.exit()    
+    def AskCreateAccount(self): # Ask User to Create a Bank Account
+        while True:
+            clear_console()
+            print(f"{Color.YELLOW}{Color.BOLD}\nWARNING: It seems like you don't own a bank account.{Color.RESET}")
+            print("Apparently, even being broke requires paperwork these days.")
 
-    def check_account_balance():
-        global balance
-        print(f"Your account balance is: {balance}")
+            choice_create_account = input("\nDo you want to create a bank account? Yes or No?\n>>> ").strip().lower()
+
+            if choice_create_account == 'yes':
+                self.CreateAccount()
+                return
+            elif choice_create_account == 'no':
+                print("\nYou need a bank account to play this game, duh.")
+                time.sleep(1.5)
+                print("Your opinion has been carefully ignored. I'll ask again.")
+                time.sleep(1.5)
+            else:
+                print(f"{Color.RED}ERROR: Please type Yes or No. It's not rocket science.{Color.RESET}")
+                time.sleep(1.5)
+
+    def CreateAccount(self): # Create a New Bank Account
+        print("\nAlright, let's create your bank account. The bank needs your life story. Just kidding.")
+        time.sleep(1)
+
+        if self.username is None or not str(self.username).strip():
+            self.ask_username()
+
+        while self.currency not in ['EUR', 'USD']:
+            self.currency = input(f"\n{self.username}, do you want to use US-Dollar (USD) or Euro (EUR)?\n>>> ").strip().upper()
+
+            if self.currency not in ['EUR', 'USD']:
+                print(f"{Color.RED}ERROR: Invalid currency. Choose EUR or USD, not monopoly money.{Color.RESET}")
+
+        self.balance = 0
+        self.update_bank_account() # Save the New Bank Account
+
+        print(f"{Color.GREEN}{Color.BOLD}\nYour bank account has been created!{Color.RESET}")
+        print(f"""
+        Username: {self.username}
+        Currency: {self.currency}
+        Account Balance: {self.balance}
+        """)
+        time.sleep(1)
+        print(f"By the way, you only have {self.balance} {self.currency}. Congratulations on your financial independence.")
+        time.sleep(1)
+        self.ask_work() # Ask User if they want to Work
+
+    def ask_username(self): # Ask User for Username if Missing
+        while self.username is None or not str(self.username).strip():
+            print(f"{Color.YELLOW}{Color.BOLD}\nWARNING: You don't have a username set up!{Color.RESET}")
+            self.username = input("Please enter your desired username:\n>>> ").strip()
+
+            if not self.username:
+                print(f"{Color.RED}ERROR: An invisible username? Very funny. Try again.{Color.RESET}")
+
+        self.update_bank_account()
+        print(f"{Color.BLUE}{Color.BOLD}\nINFO: Username updated. The bureaucracy is pleased.{Color.RESET}")
+        time.sleep(1)
+
+    def check_account_balance(self): # Check Current Account Balance
+        print(f"\nYour account balance is: {self.balance} {self.currency}")
+
+        if self.balance == 0:
+            print("Even the ATM is disappointed in you.")
+        elif self.balance < 1000:
+            print("Your bank account is alive. Barely, but alive.")
+        else:
+            print("Someone's getting rich from washing dishes. The economy makes no sense.")
+
         time.sleep(2)
-        ask_continue()
 
-    def clean_dishes():
-        global loop_clean_dishes, balance
+    # --- Jobs ---
+
+    def ask_work(self): # Ask User if they want to Work
+        while True:
+            vote_ask_work = input("\nDo you want to work to get some money? Yes or No?\n>>> ").strip().lower()
+
+            if vote_ask_work == 'yes':
+                print("Perfect! You have been hired immediately. No interview, no dignity.")
+                time.sleep(1.5)
+                self.select_job()
+                return
+            elif vote_ask_work == 'no':
+                print("Sorry, bud. Your application to remain unemployed has been rejected.")
+                time.sleep(1.5)
+                self.select_job()
+                return
+            else:
+                print(f"{Color.RED}ERROR: Type Yes or No. HR is losing patience.{Color.RESET}")
+
+    def select_job(self): # Show Available Jobs
+        if self.is_greeted_job is False:
+            print(f"\nWelcome, {self.username}! You were upgraded from homeless to dish cleaner!")
+            time.sleep(1)
+            print(f"For every cleaning shift, you earn 10 {self.currency}. That's five plates. Have fun!")
+            time.sleep(1)
+            self.is_greeted_job = True
+
+        while True:
+            print(f"\n{Color.BOLD}Welcome to the Job Center. We have exactly one terrible job available.{Color.RESET}")
+            print(f"1. Clean dishes for 10 {self.currency}")
+            print("2. Check current account balance")
+            print("3. Exit the bank")
+
+            vote_ask_continue = input("\nType a number to do the action:\n>>> ").strip()
+
+            if vote_ask_continue == '1':
+                self.clean_dishes()
+            elif vote_ask_continue == '2':
+                self.check_account_balance()
+            elif vote_ask_continue == '3':
+                self.exit_bank()
+                return
+            else:
+                print(f"{Color.RED}ERROR: Invalid option. Even the dishes understand numbers.{Color.RESET}")
+
+    def clean_dishes(self): # Clean Five Plates and Earn Money
+        loop_clean_dishes = 0
+
         while loop_clean_dishes < 5:
-            os.system('cls' if os.name == 'nt' else 'clear')
+            clear_console()
             print("Cleaning one plate.")
             time.sleep(0.5)
-            os.system('cls' if os.name == 'nt' else 'clear')
+            clear_console()
             print("Cleaning one plate..")
             time.sleep(0.5)
-            os.system('cls' if os.name == 'nt' else 'clear')
+            clear_console()
             print("Cleaning one plate...")
             time.sleep(0.5)
-            os.system('cls' if os.name == 'nt' else 'clear')
+            clear_console()
             loop_clean_dishes += 1
-        balance += 10
-        loop_clean_dishes = 0
-        update_account()
-        print(f"You earned 10 {currency}! Saved to wallet.")
+
+        self.balance += 10 # Add Job Payout to Bank Account
+        self.update_bank_account() # Save New Balance to config.json
+        print(f"{Color.GREEN}You earned 10 {self.currency}! Saved to your bank account.{Color.RESET}")
+        print("Five plates later, your financial empire has grown by ten whole units. Incredible.")
         time.sleep(1.5)
-        ask_continue()
 
-    def greeting():
-        global username, currency, is_greeted_job
-        print(f"\nWelcome, {username}!")
-        time.sleep(1)
-        print("You were upgraded from homeless to dish cleaner!")
-        time.sleep(1)
-        print(f"For every dish you clean, you get 10 {currency}. Have fun!")
-        is_greeted_job = True
-        ask_continue()
+    # --- Navigation ---
 
-    if is_greeted_job == False:
-        greeting()
-    elif is_greeted_job == True:
-        ask_continue()
+    def exit_bank(self): # Return to City Selection
+        print("\nYou leave the bank. The dishes will miss you. The employees won't.")
+        time.sleep(1.5)
+        subprocess.run([sys.executable, file_path_select_location])
+        sys.exit()
 
-def create_account():
-    global username, currency, balance, file_path_config
+    def Start(self): # Start Bank Story
+        if self.username is None or not str(self.username).strip():
+            self.ask_username()
 
-    balance = 0
-    update_account()
+        if self.currency is None: # Check if User has a Bank Account
+            self.AskCreateAccount()
+            return
 
-    print("Created a new bank account!")
-    print(f"""
-        Username: {username},
-        Currency: {currency},
-        Account Balance: {balance}
-    """)
+        if self.balance < 1000:
+            print("\nIt seems like you already have a bank account.")
+            time.sleep(1)
+            self.ask_existing_work()
+        else:
+            print(f"\nWelcome back, {self.username}. You're actually doing pretty well.")
+            self.select_job()
 
-    if balance < 1000:
-        print(f"\nBy the way, you only have {balance} {currency} on your account.")
-        time.sleep(2)
-        vote_work = input("Do you want to work to get some money? Yes or No.\n>>> ")
+    def ask_existing_work(self): # Ask Existing Account Owner if they want to Work
+        while True:
+            vote_ask_work = input("\nWanna work instead? Yes or No?\n>>> ").strip().lower()
 
-        if vote_work == "Yes" or vote_work == "yes":
-            print("Perfect! You will be immediately hired as a dish cleaner!")
-            print("One moment, please...")
-            time.sleep(5)
-            cleaner_job()
-        elif vote_work == "No" or vote_work == "no":
-            print("Sorry, bud. You are being forced to work as a dish cleaner.")
-            cleaner_job()
+            if vote_ask_work == 'yes':
+                self.select_job()
+                return
+            elif vote_ask_work == 'no':
+                print("Understandable. The dishes can wash themselves. Probably.")
+                self.exit_bank()
+                return
+            else:
+                print(f"{Color.RED}ERROR: Please type Yes or No.{Color.RESET}")
 
-# --- Story --- 
+# --- Start ---
 
-def story():
-    global vote_ask_work, username, currency, balance, file_path_config
-
-    # Load config (empty if the file doesn't exist yet)
+if __name__ == '__main__':
     if os.path.exists(file_path_config):
-        with open(file_path_config, "r", encoding="utf-8") as file:
+        with open(file_path_config, 'r', encoding='utf-8') as file:
             config = json.load(file)
     else:
         config = {}
 
-    bank_account = config.get("bank_account", {})
-    user_section = config.get("user", {})
+    config_username = config.get('user', {}).get('username')
+    config_currency = config.get('bank_account', {}).get('currency')
+    config_balance = config.get('bank_account', {}).get('balance', 0)
 
-    username = user_section.get("username")
-    currency = bank_account.get("currency")
-    balance = bank_account.get("balance", 0)
-
-    # A bank account only exists if a currency has been chosen
-    has_account = currency is not None
-
-    if has_account and balance < 1000:
-        print("It seems like you already have a bank account.")
-        time.sleep(1)
-        vote_ask_work = input("Wanna work instead? Yes or No.\n>>> ")
-
-        if vote_ask_work == "Yes" or vote_ask_work == "yes":
-            cleaner_job()
-            return
-        elif vote_ask_work == "No" or vote_ask_work == "no":
-            subprocess.run([sys.executable, file_path_select_location])
-            sys.exit()
-
-    if has_account:
-        cleaner_job()
-        return
-
-    vote_create_new_bank_account = input("\nDo you want to create a new bank account? Yes or No\n>>> ")
-
-    if vote_create_new_bank_account == "Yes" or vote_create_new_bank_account == "yes":
-        print("Alright, let's create the bank account, we need some details.")
-
-        # Only ask for the username if there is none yet
-        if username is None:
-            username = input("What's your username?\n>>> ")
-
-        # Always ask for the currency until it is valid
-        currency = None
-        while currency not in ["EUR", "USD"]:
-            currency = input("What currency do you want to use? EUR or USD?\n>>> ")
-            if currency not in ["EUR", "USD"]:
-                print("Invalid currency. Please choose either EUR or USD.")
-
-        create_account()
-    elif vote_create_new_bank_account == "No" or vote_create_new_bank_account == "no":
-        print("You need a bank account in this game to play it, duh.")
-        time.sleep(1.5)
-        print("I will ask you again...")
-        story()
-    else:
-        story()
-
-story()
+    account = Main(config_username, config_currency, config_balance)
+    account.Start()
